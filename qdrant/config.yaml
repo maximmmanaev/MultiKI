@@ -1,0 +1,4 @@
+service:
+  telemetry_disabled: true
+  api_key: "${QDRANT_API_KEY}"
+log_level: INFO
