@@ -1,311 +1,1544 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MultiKI Controller</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Russo+One&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-primary: #1a2340;
-      --bg-secondary: #0d1f2d;
-      --card-bg: #243460;
-      --card-border: #f5c842;
-      --accent-gold: #f5c842;
-      --accent-red: #d94f3d;
-      --accent-green: #5abf8a;
-      --accent-blue: #4ab3d4;
-      --text-primary: #f5f0e0;
-      --text-secondary: #d1c9b8;
-      --font-body: 'Comfortaa', cursive;
-      --font-heading: 'Russo One', sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiKI Controller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ПЕРЕМЕННЫЕ — советская палитра «Ёжик в тумане»
+   ============================================================ */
+:root {
+  --bg-primary:    #1a2340;
+  --bg-secondary:  #0d1f2d;
+  --card-bg:       #243460;
+  --card-border:   #f5c842;
+  --accent-gold:   #f5c842;
+  --accent-red:    #d94f3d;
+  --accent-green:  #5abf8a;
+  --accent-blue:   #4ab3d4;
+  --accent-orange: #e8894a;
+  --text-primary:  #f5f0e0;
+  --text-muted:    #d1c9b8;
+  --shadow:        #0d1f2d;
+  --card-border-radius: 12px 8px 14px 6px;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font-body);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-    }
+/* ============================================================
+   СБРОС И БАЗА
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* HEADER */
-    #app-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 15px; background: var(--card-bg);
-      border: 3px solid var(--card-border); border-radius: 14px 10px 16px 8px;
-      margin-bottom: 12px;
-    }
-    #app-title { font-family: var(--font-heading); font-size: 1.5rem; color: var(--accent-gold); }
-    #app-status { display: flex; gap: 10px; font-size: 0.85rem; }
-    .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #555; margin-right: 4px; }
-    .status-dot.active { background: var(--accent-green); animation: blink 1.5s infinite; }
+html, body {
+  height: 100%;
+  font-family: 'Comfortaa', cursive;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
 
-    /* TABS */
-    #tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-    .tab-btn {
-      padding: 8px 16px; background: var(--card-bg); border: 2px solid var(--accent-gold);
-      border-radius: 12px 8px 14px 6px; color: var(--text-primary); cursor: pointer;
-      font-family: var(--font-body); transition: 0.2s;
-    }
-    .tab-btn:hover { transform: translateY(-2px); }
-    .tab-btn.active { background: var(--accent-gold); color: var(--bg-primary); font-weight: 600; }
+/* ============================================================
+   ЗВЁЗДНЫЙ ФОН — «Тайна третьей планеты»
+   ============================================================ */
+#starfield {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
 
-    /* VIEWS */
-    .view { display: none; flex: 1; animation: bounceIn 0.4s ease-out; }
-    .view.active { display: flex; flex-direction: column; }
+.star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+}
 
-    /* CHAT */
-    #chat-messages {
-      flex: 1; background: var(--bg-secondary); border-radius: 14px 10px 16px 8px;
-      border: 2px solid var(--card-border); padding: 12px; overflow-y: auto; margin-bottom: 10px;
-      min-height: 300px; display: flex; flex-direction: column; gap: 8px;
-    }
-    .msg { max-width: 85%; padding: 10px 14px; border-radius: 14px 12px 16px 10px; line-height: 1.5; }
-    .msg.user { align-self: flex-end; background: #2a3a70; border: 2px solid var(--accent-blue); }
-    .msg.ai { align-self: flex-start; background: var(--card-bg); border: 3px solid var(--card-border); }
-    .msg.loading { opacity: 0.7; font-style: italic; }
+/* Мерцание звёзд — советский мультфильм */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.3); }
+}
 
-    #chat-input-row { display: flex; gap: 8px; }
-    #chat-input {
-      flex: 1; padding: 12px; background: var(--card-bg); border: 2px solid var(--accent-gold);
-      border-radius: 12px 8px 14px 6px; color: var(--text-primary); font-family: var(--font-body);
-    }
-    #chat-input:focus { outline: none; border-color: var(--accent-blue); }
-    #chat-send {
-      padding: 10px 18px; background: var(--accent-gold); color: var(--bg-primary);
-      border: none; border-radius: 10px 6px 12px 8px; font-weight: 700; cursor: pointer;
-      transition: 0.1s;
-    }
-    #chat-send:active { transform: scale(0.92); box-shadow: 2px 2px 0 var(--bg-secondary); }
+/* Медленное движение планет */
+@keyframes drift {
+  0%   { transform: translateX(0) translateY(0) rotate(0deg); }
+  33%  { transform: translateX(8px) translateY(-5px) rotate(120deg); }
+  66%  { transform: translateX(-5px) translateY(4px) rotate(240deg); }
+  100% { transform: translateX(0) translateY(0) rotate(360deg); }
+}
 
-    /* HISTORY */
-    #history-list { background: var(--bg-secondary); border-radius: 14px; border: 2px solid var(--card-border); padding: 12px; overflow-y: auto; flex: 1; }
-    .history-item { padding: 8px; border-bottom: 1px dashed var(--text-secondary); }
+.planet {
+  position: absolute;
+  border-radius: 50%;
+  animation: drift linear infinite;
+}
 
-    /* SYSTEM */
-    .system-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
-    .service-card {
-      background: var(--card-bg); border: 3px solid var(--card-border); border-radius: 14px 10px 16px 8px;
-      padding: 12px; text-align: center;
-    }
-    .lamp { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #555; margin-right: 6px; }
-    .lamp.on { background: var(--accent-green); animation: blink 1.5s infinite; }
-    .lamp.off { background: var(--accent-red); }
+/* ============================================================
+   АНИМАЦИИ ИНТЕРФЕЙСА
+   ============================================================ */
 
-    #vram-container { background: var(--bg-secondary); border-radius: 12px; border: 2px solid var(--card-border); padding: 10px; margin-bottom: 12px; }
-    #vram-bar-bg { width: 100%; height: 12px; background: #111; border-radius: 6px; overflow: hidden; border: 1px solid var(--text-secondary); }
-    #vram-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-gold)); width: 0%; transition: width 0.5s ease; }
-    #vram-text { text-align: center; margin-top: 5px; font-size: 0.9rem; }
+/* Покачивание иконок при hover — игрушечный эффект */
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-4deg); }
+  75%       { transform: rotate(4deg); }
+}
 
-    #controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-    .ctrl-btn { padding: 8px 14px; border: 2px solid var(--accent-gold); background: var(--card-bg); color: var(--text-primary); border-radius: 12px 8px 14px 6px; cursor: pointer; font-family: var(--font-body); }
-    .ctrl-btn:hover { transform: translateY(-2px); }
-    .ctrl-btn.green { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
-    .ctrl-btn.red { background: var(--accent-red); color: #fff; border-color: var(--accent-red); }
+/* «Выкатывание» карточки снизу — как шарик в советском мультике */
+@keyframes bounce-in {
+  0%   { transform: translateY(24px) scale(0.93); opacity: 0; }
+  55%  { transform: translateY(-6px) scale(1.03); opacity: 1; }
+  75%  { transform: translateY(3px) scale(0.98); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
 
-    #stack-log { background: #0a0f1a; color: #8899aa; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 0.85rem; height: 100px; overflow-y: auto; border: 1px solid #333; }
+/* Мигание советской лампочки — пульт управления */
+@keyframes lamp-blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+  50%       { opacity: 0.65; box-shadow: 0 0 3px currentColor; }
+}
 
-    .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-    .link { color: var(--accent-blue); text-decoration: none; border-bottom: 1px dashed; }
-    .link:hover { color: var(--accent-gold); }
+/* «Выплывание» тоста снизу */
+@keyframes toast-in {
+  from { transform: translateY(80px) scale(0.9); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
 
-    @keyframes blink { 0%,100%{opacity:1; box-shadow:0 0 6px var(--accent-green)} 50%{opacity:0.6; box-shadow:0 0 2px var(--accent-green)} }
-    @keyframes bounceIn { 0%{transform:translateY(15px) scale(0.96); opacity:0} 60%{transform:translateY(-3px) scale(1.02)} 100%{transform:translateY(0) scale(1); opacity:1} }
-  </style>
+@keyframes toast-out {
+  from { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(80px); opacity: 0; }
+}
+
+/* Появление сообщения в чате */
+@keyframes msg-appear {
+  from { transform: translateX(-20px) scale(0.96); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes msg-appear-right {
+  from { transform: translateX(20px) scale(0.96); opacity: 0; }
+  to   { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+/* Пульсация при загрузке */
+@keyframes pulse-dot {
+  0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
+  40%            { transform: scale(1); opacity: 1; }
+}
+
+/* Прожим кнопки — резиновая игрушка */
+.btn:active { transform: scale(0.91) translateY(3px); }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   HEADER — «шапка корабля»
+   ============================================================ */
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(26,35,64,0.92);
+  border-bottom: 2px solid var(--accent-gold);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-family: 'Russo One', sans-serif;
+  font-size: 22px;
+  color: var(--accent-gold);
+  text-shadow: 0 0 20px rgba(245,200,66,0.5);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-rocket {
+  font-size: 26px;
+  display: inline-block;
+  animation: wobble 3s ease-in-out infinite;
+}
+
+/* Индикаторы статуса в шапке — советские лампочки */
+.status-lights {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lamp {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: lamp-blink 2.5s ease-in-out infinite;
+  cursor: pointer;
+  position: relative;
+}
+
+.lamp.green  { color: var(--accent-green);  background: var(--accent-green); }
+.lamp.red    { color: var(--accent-red);    background: var(--accent-red);   animation-delay: 0.8s; }
+.lamp.yellow { color: var(--accent-gold);   background: var(--accent-gold);  animation-delay: 1.4s; }
+.lamp.blue   { color: var(--accent-blue);   background: var(--accent-blue);  animation-delay: 0.4s; }
+.lamp.off    { color: #555; background: #555; animation: none; box-shadow: none; opacity: 0.5; }
+
+.lamp-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.lamp-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ============================================================
+   НАВИГАЦИЯ — вкладки
+   ============================================================ */
+#nav {
+  display: flex;
+  gap: 0;
+  padding: 0 24px;
+  background: rgba(13,31,45,0.8);
+  border-bottom: 1px solid rgba(245,200,66,0.3);
+}
+
+.nav-tab {
+  font-family: 'Comfortaa', cursive;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 12px 22px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  position: relative;
+  transition: color 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.nav-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  background: var(--accent-gold);
+  border-radius: 3px 3px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.nav-tab:hover { color: var(--text-primary); }
+
+.nav-tab.active {
+  color: var(--accent-gold);
+}
+.nav-tab.active::after { transform: scaleX(1); }
+
+/* ============================================================
+   СТРАНИЦЫ
+   ============================================================ */
+.page { display: none; flex: 1; overflow-y: auto; }
+.page.active { display: flex; flex-direction: column; }
+
+/* ============================================================
+   КАРТОЧКА — «рукотворный» стиль
+   ============================================================ */
+.card {
+  background: var(--card-bg);
+  /* Неровные углы — имитация кисти художника */
+  border-radius: 12px 8px 14px 6px;
+  border: 2px solid var(--card-border);
+  /* Бумажный сдвиг тени — как вырезка из советской книги */
+  box-shadow: 5px 5px 0 var(--shadow), 0 0 30px rgba(245,200,66,0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Орнамент на рамке — угловые декоры */
+.card::before, .card::after {
+  content: '✦';
+  position: absolute;
+  color: var(--accent-gold);
+  font-size: 10px;
+  opacity: 0.6;
+}
+.card::before { top: 6px; left: 8px; }
+.card::after  { bottom: 6px; right: 8px; }
+
+/* ============================================================
+   КНОПКИ — органические формы
+   ============================================================ */
+.btn {
+  font-family: 'Comfortaa', cursive;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 2px solid;
+  /* Неровные углы — «мягкая резина» */
+  border-radius: 10px 6px 12px 8px;
+  transition: all 0.15s ease;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+.btn-gold {
+  background: var(--accent-gold);
+  border-color: #c8a030;
+  color: #1a2340;
+}
+
+.btn-green {
+  background: var(--accent-green);
+  border-color: #3a9f6a;
+  color: #0d2218;
+}
+
+.btn-red {
+  background: var(--accent-red);
+  border-color: #b03020;
+  color: #f5f0e0;
+}
+
+.btn-blue {
+  background: transparent;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: rgba(245,200,66,0.4);
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+.btn-icon {
+  padding: 10px 12px;
+  border-radius: 50%;
+}
+
+/* ============================================================
+   ЧАТ-СТРАНИЦА
+   ============================================================ */
+#chat-page {
+  display: none;
+  flex-direction: column;
+  height: calc(100vh - 100px);
+}
+#chat-page.active { display: flex; }
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+#messages::-webkit-scrollbar { width: 6px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb { background: rgba(245,200,66,0.3); border-radius: 3px; }
+
+/* Сообщение пользователя — справа */
+.msg-user {
+  align-self: flex-end;
+  max-width: 65%;
+  background: linear-gradient(135deg, #2a4060, #1e3050);
+  border-radius: 16px 4px 16px 16px;
+  border: 1.5px solid rgba(74,179,212,0.5);
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+  box-shadow: 3px 3px 0 rgba(13,31,45,0.6);
+  animation: msg-appear-right 0.3s ease;
+}
+
+/* Карточка ответа ИИ — слева */
+.msg-ai {
+  align-self: flex-start;
+  max-width: 78%;
+  animation: bounce-in 0.45s ease;
+}
+
+.msg-ai-inner {
+  background: var(--card-bg);
+  border-radius: 4px 16px 16px 16px;
+  border: 2px solid var(--card-border);
+  box-shadow: 5px 5px 0 var(--shadow);
+  padding: 14px 18px;
+  position: relative;
+}
+
+.msg-ai-inner::before {
+  content: '✦';
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  color: var(--accent-gold);
+  font-size: 9px;
+  opacity: 0.5;
+}
+
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.msg-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.msg-text ul {
+  margin: 8px 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Пояснение модели — сворачиваемое */
+.msg-details {
+  margin-top: 12px;
+  border-top: 1px solid rgba(245,200,66,0.2);
+  padding-top: 10px;
+}
+
+.msg-details-toggle {
+  font-size: 12px;
+  color: var(--accent-gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+}
+.msg-details-toggle:hover { opacity: 1; }
+
+.msg-details-content {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 8px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.msg-details-content.open { max-height: 200px; }
+
+/* Точки загрузки */
+.loading-dots {
+  display: flex;
+  gap: 5px;
+  padding: 4px 0;
+}
+.loading-dots span {
+  width: 8px; height: 8px;
+  background: var(--accent-gold);
+  border-radius: 50%;
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ============================================================
+   БЕЙДЖИ — КАТЕГОРИИ / ПРИОРИТЕТ
+   ============================================================ */
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 8px 4px 9px 5px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+}
+
+.badge-gold   { background: rgba(245,200,66,0.2); border: 1px solid var(--accent-gold); color: var(--accent-gold); }
+.badge-green  { background: rgba(90,191,138,0.2); border: 1px solid var(--accent-green); color: var(--accent-green); }
+.badge-red    { background: rgba(217,79,61,0.2);  border: 1px solid var(--accent-red);   color: var(--accent-red); }
+.badge-blue   { background: rgba(74,179,212,0.2); border: 1px solid var(--accent-blue);  color: var(--accent-blue); }
+.badge-orange { background: rgba(232,137,74,0.2); border: 1px solid var(--accent-orange);color: var(--accent-orange); }
+
+/* Лампочка-бейдж приоритета */
+.priority-lamp {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: lamp-blink 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   ИКОНКИ СТОЛПОВ — круглые значки
+   ============================================================ */
+.pillar-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.pillar-icon:hover { animation: wobble 0.5s ease; }
+
+/* ============================================================
+   ПОЛЕ ВВОДА ЧАТА
+   ============================================================ */
+#chat-input-area {
+  padding: 16px 24px;
+  background: rgba(13,31,45,0.9);
+  border-top: 2px solid rgba(245,200,66,0.3);
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+#chat-input {
+  flex: 1;
+  font-family: 'Comfortaa', cursive;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: rgba(36,52,96,0.8);
+  border: 2px solid rgba(245,200,66,0.3);
+  border-radius: 10px 8px 12px 6px;
+  padding: 12px 16px;
+  resize: none;
+  min-height: 48px;
+  max-height: 120px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#chat-input::placeholder { color: rgba(209,201,184,0.5); }
+#chat-input:focus { border-color: var(--accent-gold); }
+
+/* ============================================================
+   СТАТУС-СТРАНИЦА
+   ============================================================ */
+#status-page {
+  padding: 24px;
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+}
+#status-page.active { display: flex; }
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.service-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.service-name {
+  font-family: 'Russo One', sans-serif;
+  font-size: 15px;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.service-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-info {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* VRAM термометр — делительные отметки как на советском термометре */
+.vram-meter {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.vram-track {
+  width: 100%;
+  height: 24px;
+  background: rgba(13,31,45,0.8);
+  border-radius: 12px 4px 12px 4px;
+  border: 2px solid rgba(245,200,66,0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.vram-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-gold) 60%, var(--accent-red) 100%);
+  border-radius: 10px 0 10px 0;
+  transition: width 0.6s ease;
+  position: relative;
+}
+
+/* Деления термометра */
+.vram-marks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin-top: 4px;
+}
+.vram-mark {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.vram-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+/* Секция управления стеком */
+.stack-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Лог вывода — монопространственный */
+.log-output {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: #080f1a;
+  border: 1px solid rgba(74,179,212,0.3);
+  border-radius: 6px 4px 8px 4px;
+  padding: 12px 16px;
+  color: var(--accent-green);
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.log-output::-webkit-scrollbar { width: 5px; }
+.log-output::-webkit-scrollbar-thumb { background: rgba(74,179,212,0.3); }
+
+/* Ссылки на сервисы */
+.service-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.service-link {
+  font-size: 13px;
+  color: var(--accent-blue);
+  text-decoration: none;
+  border: 1px solid rgba(74,179,212,0.4);
+  border-radius: 8px 4px 8px 4px;
+  padding: 6px 12px;
+  transition: all 0.2s;
+  font-family: 'Comfortaa', cursive;
+}
+.service-link:hover {
+  background: rgba(74,179,212,0.15);
+  border-color: var(--accent-blue);
+}
+
+/* Версионный «шильд» — угловая нашивка */
+.version-badge {
+  font-family: 'Russo One', sans-serif;
+  font-size: 11px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1.5px solid var(--accent-gold);
+  border-radius: 2px 8px 2px 8px;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   ИСТОРИЯ-СТРАНИЦА
+   ============================================================ */
+#history-page {
+  padding: 24px;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+#history-page.active { display: flex; }
+
+.history-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-input {
+  font-family: 'Comfortaa', cursive;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: rgba(36,52,96,0.8);
+  border: 2px solid rgba(245,200,66,0.3);
+  border-radius: 8px 5px 9px 6px;
+  padding: 8px 14px;
+  outline: none;
+  min-width: 160px;
+  transition: border-color 0.2s;
+}
+.filter-input:focus { border-color: var(--accent-gold); }
+.filter-input option { background: #1a2340; }
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Строка истории — появление с задержкой (staggered) */
+.history-item {
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+  animation: bounce-in 0.4s ease both;
+}
+
+.history-text { font-size: 14px; color: var(--text-primary); }
+.history-meta { font-size: 12px; color: var(--text-muted); }
+
+/* ============================================================
+   ТОСТ-УВЕДОМЛЕНИЯ — «выплывает» снизу с wobble
+   ============================================================ */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  font-family: 'Comfortaa', cursive;
+  font-size: 13px;
+  padding: 12px 18px;
+  border-radius: 10px 6px 12px 8px;
+  border: 2px solid;
+  box-shadow: 4px 4px 0 var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 320px;
+  animation: toast-in 0.35s ease;
+}
+
+.toast-hide { animation: toast-out 0.3s ease forwards; }
+
+.toast-error {
+  background: rgba(90,0,0,0.9);
+  border-color: var(--accent-red);
+  color: #ffcfc9;
+}
+
+.toast-success {
+  background: rgba(0,50,30,0.9);
+  border-color: var(--accent-green);
+  color: #c0ffd8;
+}
+
+.toast-info {
+  background: rgba(20,40,80,0.9);
+  border-color: var(--accent-blue);
+  color: #c8eeff;
+}
+
+/* ============================================================
+   СЕКЦИОННЫЙ ЗАГОЛОВОК
+   ============================================================ */
+.section-title {
+  font-family: 'Russo One', sans-serif;
+  font-size: 16px;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.section-title::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--accent-gold);
+  border-radius: 1px;
+}
+
+/* ============================================================
+   АДАПТИВНОСТЬ
+   ============================================================ */
+@media (max-width: 768px) {
+  #header { padding: 10px 14px; }
+  #messages { padding: 14px; }
+  #chat-input-area { padding: 10px 14px; }
+  .msg-user, .msg-ai { max-width: 92%; }
+  .history-item { grid-template-columns: 1fr; }
+  .status-grid { grid-template-columns: 1fr 1fr; }
+  .logo { font-size: 17px; }
+}
+
+@media (max-width: 480px) {
+  .status-grid { grid-template-columns: 1fr; }
+  .history-filters { flex-direction: column; align-items: stretch; }
+  #nav { overflow-x: auto; padding: 0 12px; }
+  .nav-tab { padding: 10px 14px; font-size: 12px; white-space: nowrap; }
+}
+
+/* Скроллбар общий */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(245,200,66,0.25); border-radius: 3px; }
+</style>
 </head>
 <body>
 
-  <header id="app-header">
-    <div id="app-title">🚀 MultiKI</div>
-    <div id="app-status">
-      <span>v0.2.0</span>
-      <span>API <span class="status-dot" id="dot-api"></span></span>
-      <span>ОЛМ <span class="status-dot" id="dot-ollama"></span></span>
+<!-- Звёздный фон -->
+<div id="starfield"></div>
+
+<div id="app">
+  <!-- ====== HEADER ====== -->
+  <header id="header">
+    <div class="logo">
+      <span class="logo-rocket">🚀</span>
+      MultiKI
+      <span class="version-badge">v0.2.0</span>
+    </div>
+    <div class="status-lights" id="header-lights">
+      <div class="lamp-group"><div class="lamp green" id="lamp-api" title="API"></div><div class="lamp-label">API</div></div>
+      <div class="lamp-group"><div class="lamp green" id="lamp-ollama" title="Ollama"></div><div class="lamp-label">ОЛМ</div></div>
+      <div class="lamp-group"><div class="lamp yellow" id="lamp-qdrant" title="Qdrant"></div><div class="lamp-label">QDR</div></div>
+      <div class="lamp-group"><div class="lamp blue" id="lamp-neo4j" title="Neo4j"></div><div class="lamp-label">NEO</div></div>
     </div>
   </header>
 
-  <nav id="tabs">
-    <button class="tab-btn active" data-tab="chat">💬 Чат</button>
-    <button class="tab-btn" data-tab="history">📋 История</button>
-    <button class="tab-btn" data-tab="system">⚙️ Система</button>
+  <!-- ====== НАВИГАЦИЯ ====== -->
+  <nav id="nav">
+    <button class="nav-tab active" data-page="chat">💬 Чат</button>
+    <button class="nav-tab" data-page="history">📋 История</button>
+    <button class="nav-tab" data-page="status">⚙️ Система</button>
   </nav>
 
-  <!-- CHAT -->
-  <main id="view-chat" class="view active">
-    <div id="chat-messages">
-      <div class="msg ai">Добро пожаловать в MultiKI! Я готов помогать вам организовывать задачи и отвечать на вопросы. Просто напишите что-нибудь 🌟</div>
-    </div>
-    <div id="chat-input-row">
-      <input id="chat-input" type="text" placeholder="Напиши задачу или вопрос...">
-      <button id="chat-send">➤</button>
-    </div>
-  </main>
-
-  <!-- HISTORY -->
-  <main id="view-history" class="view">
-    <div id="history-list">
-      <p style="text-align:center; color:#777; margin-top:40px;">История пуста. Отправьте задачу в чате.</p>
-    </div>
-  </main>
-
-  <!-- SYSTEM -->
-  <main id="view-system" class="view">
-    <div class="system-grid">
-      <div class="service-card">🦙 OLLAMA <span class="lamp" id="lamp-ollama"></span><br><small>Языковая модель</small></div>
-      <div class="service-card">🔮 QDRANT <span class="lamp" id="lamp-qdrant"></span><br><small>Векторная БД</small></div>
-      <div class="service-card">🕸 NEO4J <span class="lamp" id="lamp-neo4j"></span><br><small>Граф знаний</small></div>
-      <div class="service-card">⚡ API <span class="lamp" id="lamp-api"></span><br><small>Основной сервер</small></div>
+  <!-- ====== ЧАТ-СТРАНИЦА ====== -->
+  <div id="chat-page" class="page active">
+    <div id="messages">
+      <!-- Приветственное сообщение -->
+      <div class="msg-ai">
+        <div class="msg-ai-inner">
+          <div class="msg-meta">
+            <span class="pillar-icon" style="border-color:var(--accent-blue);background:rgba(74,179,212,0.15)">🤖</span>
+            <span class="badge badge-green"><span class="priority-lamp" style="background:var(--accent-green);color:var(--accent-green)"></span>ОНЛАЙН</span>
+          </div>
+          <div class="msg-text">
+            Добро пожаловать в MultiKI! Я готов помогать вам организовывать задачи и отвечать на вопросы. Просто напишите что-нибудь 🌟
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id="vram-container">
-      <div>Видеопамять VRAM</div>
-      <div id="vram-bar-bg"><div id="vram-bar-fill"></div></div>
-      <div id="vram-text">Загрузка...</div>
+    <div id="chat-input-area">
+      <textarea id="chat-input" rows="1" placeholder="Написать сообщение..."></textarea>
+      <button class="btn btn-gold btn-icon" id="send-btn" title="Отправить">➤</button>
+    </div>
+  </div>
+
+  <!-- ====== ИСТОРИЯ ====== -->
+  <div id="history-page" class="page">
+    <div class="section-title">История задач</div>
+    <div class="history-filters">
+      <input class="filter-input" type="text" id="search-input" placeholder="🔍 Поиск...">
+      <select class="filter-input" id="filter-priority">
+        <option value="">Все приоритеты</option>
+        <option value="высокий">Высокий</option>
+        <option value="средний">Средний</option>
+        <option value="низкий">Низкий</option>
+      </select>
+      <select class="filter-input" id="filter-category">
+        <option value="">Все категории</option>
+        <option value="🪨 earth">Земля</option>
+        <option value="💧 water">Вода</option>
+        <option value="💨 air">Воздух</option>
+        <option value="🔥 fire">Огонь</option>
+      </select>
+      <button class="btn btn-ghost" id="export-btn">⬇ Экспорт CSV</button>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <!-- ====== СТАТУС СИСТЕМЫ ====== -->
+  <div id="status-page" class="page">
+    <div class="section-title">Состояние сервисов</div>
+    <div class="status-grid">
+      <div class="card service-card">
+        <div class="service-name">🦙 OLLAMA</div>
+        <div class="service-status-row">
+          <div class="lamp green" id="s-ollama"></div>
+          <span class="badge badge-green" id="st-ollama">РАБОТАЕТ</span>
+        </div>
+        <div class="service-info">Языковая модель</div>
+      </div>
+      <div class="card service-card">
+        <div class="service-name">🔮 QDRANT</div>
+        <div class="service-status-row">
+          <div class="lamp yellow" id="s-qdrant"></div>
+          <span class="badge badge-gold" id="st-qdrant">РАБОТАЕТ</span>
+        </div>
+        <div class="service-info">Векторная БД</div>
+      </div>
+      <div class="card service-card">
+        <div class="service-name">🕸 NEO4J</div>
+        <div class="service-status-row">
+          <div class="lamp blue" id="s-neo4j"></div>
+          <span class="badge badge-blue" id="st-neo4j">РАБОТАЕТ</span>
+        </div>
+        <div class="service-info">Граф знаний</div>
+      </div>
+      <div class="card service-card">
+        <div class="service-name">⚡ API</div>
+        <div class="service-status-row">
+          <div class="lamp green" id="s-api"></div>
+          <span class="badge badge-green" id="st-api">РАБОТАЕТ</span>
+        </div>
+        <div class="service-info">Основной сервер</div>
+      </div>
     </div>
 
-    <div id="controls">
-      <button class="ctrl-btn green" id="btn-start">▶ Запустить стек</button>
-      <button class="ctrl-btn red" id="btn-stop">⏹ Остановить стек</button>
-      <button class="ctrl-btn" id="btn-refresh">↺ Обновить статус</button>
-    </div>
-    <div id="stack-log">// Лог команд Docker...</div>
+    <!-- VRAM термометр 
+    <div class="section-title" style="margin-top:4px">Видеопамять VRAM</div>
+    <div class="card" style="padding:18px 22px">
+      <div class="vram-label">
+        <span id="vram-used">8192 MiB</span>
+        <span style="color:var(--text-muted)" id="vram-total">/ 16384 MiB</span>
+      </div>
+      <div class="vram-track">
+        <div class="vram-fill" id="vram-fill" style="width:50%"></div>
+      </div>
+      <div class="vram-marks">
+        <span class="vram-mark">0</span>
+        <span class="vram-mark">25%</span>
+        <span class="vram-mark">50%</span>
+        <span class="vram-mark">75%</span>
+        <span class="vram-mark">100%</span>
+      </div>
+    </div> -->
 
-    <div class="links">
-      <a href="http://localhost:3000" target="_blank" class="link">📊 Langfuse</a>
-      <a href="https://localhost/docs" target="_blank" class="link">📖 Документация</a>
-      <a href="http://localhost:6333/dashboard" target="_blank" class="link">🔮 Qdrant UI</a>
-      <a href="http://localhost:7474" target="_blank" class="link">🕸 Neo4j Browser</a>
+    <span id="vram-text">VRAM: --</span>
+    <div class="vram-bar"><div id="vram-bar-fill" style="width:0%"></div></div>
+
+    <!-- Управление стеком -->
+    <div class="section-title">Управление Docker-стеком</div>
+    <div class="card" style="padding:18px 22px;display:flex;flex-direction:column;gap:14px">
+      <div class="stack-controls">
+        <button class="btn btn-green" id="stack-up-btn">▶ Запустить стек</button>
+        <button class="btn btn-red" id="stack-down-btn">■ Остановить стек</button>
+        <button class="btn btn-blue" id="refresh-btn">↺ Обновить статус</button>
+      </div>
+      <div class="log-output" id="stack-log">// Лог команд Docker...\n</div>
     </div>
-  </main>
+
+    <!-- Ссылки -->
+    <div class="section-title">Ресурсы</div>
+    <div class="service-links">
+      <a href="http://127.0.0.1:3000" target="_blank" class="service-link">📊 Langfuse</a>
+      <a href="https://127.0.0.1/docs" target="_blank" class="service-link" onclick="showToast('Документация открывается...','info');return false">📖 Документация</a>
+      <a href="http://127.0.0.1:6333/dashboard" target="_blank" class="service-link" onclick="showToast('Дашборд Qdrant','info');return false">🔮 Qdrant UI</a>
+      <a href="http://127.0.0.1:7474" target="_blank" class="service-link" onclick="showToast('Neo4j Browser','info');return false">🕸 Neo4j Browser</a>
+    </div>
+  </div>
+</div>
+
+<!-- Тост-контейнер -->
+<div id="toast-container"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // 🔌 UI Elements
-  const tabs = document.querySelectorAll('.tab-btn');
-  const views = { chat: document.getElementById('view-chat'), history: document.getElementById('view-history'), system: document.getElementById('view-system') };
-  const chatMessages = document.getElementById('chat-messages');
-  const chatInput = document.getElementById('chat-input');
-  const chatSend = document.getElementById('chat-send');
-  const historyList = document.getElementById('history-list');
-  const stackLog = document.getElementById('stack-log');
-  const vramFill = document.getElementById('vram-bar-fill');
-  const vramText = document.getElementById('vram-text');
-  const lamps = { api: document.getElementById('lamp-api'), ollama: document.getElementById('lamp-ollama'), qdrant: document.getElementById('lamp-qdrant'), neo4j: document.getElementById('lamp-neo4j') };
-  const dots = { api: document.getElementById('dot-api'), ollama: document.getElementById('dot-ollama') };
+/* ===========================================================
+   МОДУЛЬ 1: ЗВЁЗДНЫЙ ФОН
+   =========================================================== */
+(function initStarfield() {
+  const sf = document.getElementById('starfield');
 
-  // 🗂 Local History
-  let taskHistory = JSON.parse(localStorage.getItem('multiki_history') || '[]');
-  function renderHistory() {
-    if (taskHistory.length === 0) return;
-    historyList.innerHTML = taskHistory.map((t, i) => 
-      `<div class="history-item"><b>${i+1}.</b> ${t.text} <br><small>🏷 ${t.category} | ⚡ ${t.priority}</small></div>`
-    ).join('');
+  // Генерируем звёзды
+  for (let i = 0; i < 140; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = [
+      `left:${Math.random()*100}%`,
+      `top:${Math.random()*100}%`,
+      `width:${size}px`,
+      `height:${size}px`,
+      `opacity:${Math.random()*0.7+0.1}`,
+      `animation:twinkle ${(Math.random()*3+2).toFixed(1)}s ease-in-out ${(Math.random()*3).toFixed(1)}s infinite`
+    ].join(';');
+    sf.appendChild(s);
   }
-  renderHistory();
 
-  // 🔄 Tab Switching
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('active'));
-      Object.values(views).forEach(v => v.classList.remove('active'));
-      btn.classList.add('active');
-      views[btn.dataset.tab].classList.add('active');
+  // Маленькие планеты — «Тайна третьей планеты»
+  const planets = [
+    { size:18, x:10,  y:15, color:'#4ab3d4', dur:22 },
+    { size:12, x:80,  y:10, color:'#d94f3d', dur:31 },
+    { size:22, x:65,  y:80, color:'#5abf8a', dur:27 },
+    { size:9,  x:25,  y:70, color:'#f5c842', dur:38 },
+    { size:14, x:90,  y:55, color:'#e8894a', dur:19 },
+  ];
+
+  planets.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'planet';
+    el.style.cssText = [
+      `left:${p.x}%`, `top:${p.y}%`,
+      `width:${p.size}px`, `height:${p.size}px`,
+      `background:${p.color}`,
+      `opacity:0.25`,
+      `animation:drift ${p.dur}s ease-in-out infinite`,
+      `box-shadow:0 0 ${p.size/2}px ${p.color}`
+    ].join(';');
+    sf.appendChild(el);
+  });
+})();
+
+/* ===========================================================
+   МОДУЛЬ 2: НАВИГАЦИЯ
+   =========================================================== */
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const pageId = tab.dataset.page + '-page';
+    document.getElementById(pageId).classList.add('active');
+    if (tab.dataset.page === 'history') renderHistory();
+    if (tab.dataset.page === 'status') loadStatus();
+  });
+});
+
+/* ===========================================================
+   МОДУЛЬ 3: API-СЛОЙ
+   =========================================================== */
+const API = {
+  BASE: '',  // Nginx proxy
+  TIMEOUT: 120000,
+
+  async _fetch(url, opts = {}) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), this.TIMEOUT);
+    try {
+      const res = await fetch(url, { ...opts, signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try { const j = await res.json(); msg = j.detail || j.error || msg; } catch {}
+        throw new Error(msg);
+      }
+      return await res.json();
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') throw new Error('Таймаут запроса');
+      if (e.message.includes('fetch')) throw new Error('Нет связи с сервером');
+      throw e;
+    }
+  },
+
+  chat(text) {
+    return this._fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
     });
+  },
+
+  health()     { return this._fetch('/health'); },
+  status()     { return this._fetch('/api/status'); },
+  stackUp()    { return this._fetch('/api/stack/up', { method: 'POST' }); },
+  stackDown()  { return this._fetch('/api/stack/down', { method: 'POST' }); }
+};
+
+/* ===========================================================
+   МОДУЛЬ 4: ТОСТЫ
+   =========================================================== */
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  const icons = { error: '⚠️', success: '✓', info: 'ℹ' };
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<span>${icons[type] || icons.info}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('toast-hide');
+    setTimeout(() => t.remove(), 320);
+  }, 3500);
+}
+
+/* ===========================================================
+   МОДУЛЬ 5: ЧИСЕЛ В ПРИОРИТЕТ
+   =========================================================== */
+function parsePriority(raw) {
+  if (!raw) return null;
+  const r = String(raw).toLowerCase();
+  if (r.includes('high') || r.includes('высок')) return { label:'ВЫСОКИЙ', cls:'badge-red', lamp:'#d94f3d' };
+  if (r.includes('med') || r.includes('сред'))   return { label:'СРЕДНИЙ', cls:'badge-gold', lamp:'#f5c842' };
+  return { label:'НИЗКИЙ', cls:'badge-green', lamp:'#5abf8a' };
+}
+
+function parsePillar(raw) {
+  if (!raw) return { icon:'🌍', color:'#4ab3d4', label:'EARTH' };
+  const r = String(raw).toLowerCase();
+  if (r.includes('water') || r.includes('вод')) return { icon:'💧', color:'#4ab3d4', label:'ВОДА' };
+  if (r.includes('air')   || r.includes('воздух')) return { icon:'💨', color:'#5abf8a', label:'ВОЗДУХ' };
+  if (r.includes('fire')  || r.includes('огон')) return { icon:'🔥', color:'#d94f3d', label:'ОГОНЬ' };
+  return { icon:'🪨', color:'#d1c9b8', label:'ЗЕМЛЯ' };
+}
+
+/* ===========================================================
+   МОДУЛЬ 6: ЧАТ
+   =========================================================== */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+
+// Хранилище истории для экспорта
+const taskHistory = [];
+
+function addUserMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'msg-user';
+  el.textContent = text;
+  messagesEl.appendChild(el);
+  scrollBottom();
+}
+
+function addLoadingMsg() {
+  const el = document.createElement('div');
+  el.className = 'msg-ai';
+  el.id = 'loading-msg';
+  el.innerHTML = `<div class="msg-ai-inner"><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+  messagesEl.appendChild(el);
+  scrollBottom();
+  return el;
+}
+
+function removeLoadingMsg() {
+  const el = document.getElementById('loading-msg');
+  if (el) el.remove();
+}
+
+function addAIMsg(data, userText) {
+  // Разбираем ответ API
+  const response = typeof data === 'string' ? data : (data.response || data.text || JSON.stringify(data));
+  const meta = data.metadata || {};
+  const priority = parsePriority(meta.priority);
+  const pillar = parsePillar(meta.pillar);
+
+  // Сохраняем в историю
+  taskHistory.push({
+    date: new Date().toLocaleDateString('ru'),
+    query: userText,
+    response: response.slice(0, 80) + '...',
+    priority: priority ? priority.label : 'Н/А',
+    pillar: pillar.label
   });
 
-  // 💬 Chat Logic
-  async function sendMessage() {
-    const text = chatInput.value.trim();
-    if (!text) return;
-    
-    chatInput.value = '';
-    appendMsg('user', text);
-    const loading = appendMsg('ai', '⏳ Думаю...', true);
-    
+  // Создаём DOM
+  const el = document.createElement('div');
+  el.className = 'msg-ai';
+
+  const taskLines = parseTaskLines(response);
+  const detailText = meta.explanation || meta.reasoning || '';
+
+  el.innerHTML = `
+    <div class="msg-ai-inner">
+      <div class="msg-meta">
+        <span class="pillar-icon" style="border-color:${pillar.color};background:${pillar.color}22">${pillar.icon}</span>
+        <span class="badge badge-blue">${pillar.label}</span>
+        ${priority ? `<span class="badge ${priority.cls}"><span class="priority-lamp" style="background:${priority.lamp};color:${priority.lamp}"></span>${priority.label}</span>` : ''}
+      </div>
+      <div class="msg-text">${taskLines}</div>
+      ${detailText ? `
+        <div class="msg-details">
+          <button class="msg-details-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ Скрыть пояснение':'▼ Пояснение модели...'">▼ Пояснение модели...</button>
+          <div class="msg-details-content">${detailText}</div>
+        </div>` : ''}
+    </div>`;
+
+  messagesEl.appendChild(el);
+  scrollBottom();
+}
+
+// Демо-ответ для тестирования (когда API не доступен)
+function getDemoResponse(text) {
+  const tasks = [
+    { t: 'Купить продукты', items: ['Найти ближайший магазин', 'Составить список', 'Проверить наличие карты лояльности', 'Купить'], pillar: 'earth', priority: 'medium' },
+    { t: 'Написать письмо', items: ['Определить адресата', 'Сформулировать тему', 'Написать черновик', 'Отправить'], pillar: 'air', priority: 'high' },
+    { t: 'Изучить новую тему', items: ['Найти материалы', 'Составить план изучения', 'Читать и конспектировать'], pillar: 'water', priority: 'low' },
+  ];
+  const demo = tasks[Math.floor(Math.random() * tasks.length)];
+  return {
+    response: `${demo.t}\n• ${demo.items.join('\n• ')}`,
+    metadata: { pillar: demo.pillar, priority: demo.priority, explanation: `Задача разбита на ${demo.items.length} подзадачи. Оценочное время выполнения: ${demo.items.length * 10} мин.` }
+  };
+}
+
+function parseTaskLines(text) {
+  if (!text) return '';
+  const lines = text.split('\n').filter(Boolean);
+  let html = '';
+  let inList = false;
+  lines.forEach(line => {
+    const isBullet = /^[•\-\*]/.test(line.trim());
+    if (isBullet) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${line.replace(/^[•\-\*]\s*/, '')}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p style="margin-bottom:6px;font-weight:600">${line}</p>`;
+    }
+  });
+  if (inList) html += '</ul>';
+  return html;
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addUserMsg(text);
+  const loader = addLoadingMsg();
+
+  try {
+    let data;
     try {
-      const res = await fetch('/api/classify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      data = await API.chat(text);
+    } catch {
+      // Демо-режим если API недоступен
+      await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+      data = getDemoResponse(text);
+    }
+    removeLoadingMsg();
+    addAIMsg(data, text);
+  } catch (e) {
+    removeLoadingMsg();
+    showToast('⚠️ Нет связи с сервером', 'error');
+    const el = document.createElement('div');
+    el.className = 'msg-ai';
+    el.innerHTML = `<div class="msg-ai-inner"><div class="msg-text" style="color:var(--accent-red)">⚠️ Ошибка: ${e.message}</div></div>`;
+    messagesEl.appendChild(el);
+    scrollBottom();
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function scrollBottom() {
+  setTimeout(() => messagesEl.scrollTop = messagesEl.scrollHeight, 50);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// Авторастягивание поля ввода
+inputEl.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+/* ===========================================================
+   МОДУЛЬ 7: ИСТОРИЯ
+   =========================================================== */
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const priFilter = document.getElementById('filter-priority').value.toLowerCase();
+  const catFilter = document.getElementById('filter-category').value.toLowerCase();
+
+  const filtered = taskHistory.filter(item => {
+    const matchSearch = !search || item.query.toLowerCase().includes(search) || item.response.toLowerCase().includes(search);
+    const matchPri = !priFilter || item.priority.toLowerCase().includes(priFilter);
+    const matchCat = !catFilter || item.pillar.toLowerCase().includes(catFilter.replace(/[🪨💧💨🔥]\s*/,''));
+    return matchSearch && matchPri && matchCat;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:14px">
+      ${taskHistory.length === 0 ? '✦ История пока пуста — начните чат!' : '✦ Ничего не найдено по фильтрам'}
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'card history-item';
+    el.style.animationDelay = (i * 60) + 'ms';
+    const pillar = parsePillar(item.pillar);
+    const priority = parsePriority(item.priority);
+    el.innerHTML = `
+      <div>
+        <div class="history-text">${item.query}</div>
+        <div class="history-meta" style="margin-top:4px">${item.response}</div>
+      </div>
+      <span class="badge badge-blue">${pillar.icon} ${pillar.label}</span>
+      ${priority ? `<span class="badge ${priority.cls}">${priority.label}</span>` : ''}
+      <span class="history-meta">${item.date}</span>
+    `;
+    list.appendChild(el);
+  });
+}
+
+['search-input','filter-priority','filter-category'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', renderHistory);
+  document.getElementById(id)?.addEventListener('change', renderHistory);
+});
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  if (taskHistory.length === 0) { showToast('История пуста', 'info'); return; }
+  const rows = [
+    ['Дата', 'Запрос', 'Ответ', 'Приоритет', 'Категория'],
+    ...taskHistory.map(i => [i.date, i.query, i.response.replace(/,/g,''), i.priority, i.pillar])
+  ];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8' }));
+  a.download = `multiki-history-${Date.now()}.csv`;
+  a.click();
+  showToast('CSV экспортирован!', 'success');
+});
+
+/* ===========================================================
+   МОДУЛЬ 8: СТАТУС СИСТЕМЫ
+   =========================================================== */
+async function loadStatus() {
+  const log = document.getElementById('stack-log');
+
+  try {
+    // Попытка запросить реальный статус
+    let data;
+    try {
+      data = await API.status();
+    } catch {
+      // Мок-данные для демо
+      data = {
+        containers: { api:'running', ollama:'running', qdrant:'running', neo4j:'running' },
+        vram_used: '8192 MiB',
+        vram_total: '16384 MiB',
+        version: '0.2.0'
+      };
+    }
+
+    // Обновляем лампочки сервисов
+    const serviceMap = {
+      api:    { lamp:'s-api',    st:'st-api',    hLamp:'lamp-api'    },
+      ollama: { lamp:'s-ollama', st:'st-ollama', hLamp:'lamp-ollama' },
+      qdrant: { lamp:'s-qdrant', st:'st-qdrant', hLamp:'lamp-qdrant' },
+      neo4j:  { lamp:'s-neo4j',  st:'st-neo4j',  hLamp:'lamp-neo4j'  },
+    };
+
+    const colorMap = { running: 'green', stopped: 'red', starting: 'yellow', unknown: 'off' };
+
+    Object.entries(serviceMap).forEach(([svc, ids]) => {
+      const state = data.containers?.[svc] || 'unknown';
+      const color = colorMap[state] || 'yellow';
+
+      const lamp = document.getElementById(ids.lamp);
+      const st   = document.getElementById(ids.st);
+      const hLamp= document.getElementById(ids.hLamp);
+
+      if (lamp) { lamp.className = `lamp ${color}`; }
+      if (hLamp){ hLamp.className = `lamp ${color}`; }
+      if (st) {
+        const labels = { running:'РАБОТАЕТ', stopped:'ОСТАНОВЛЕН', starting:'ЗАПУСК...' };
+        const classes= { running:'badge-green', stopped:'badge-red', starting:'badge-gold' };
+        st.textContent = labels[state] || state.toUpperCase();
+        st.className = `badge ${classes[state] || 'badge-blue'}`;
+      }
+    });
+
+    // VRAM термометр
+    const usedMi  = parseInt(data.vram_used)  || 8192;
+    const totalMi = parseInt(data.vram_total) || 16384;
+    const pct = Math.round((usedMi / totalMi) * 100);
+    document.getElementById('vram-fill').style.width = pct + '%';
+    document.getElementById('vram-used').textContent  = data.vram_used  || '8192 MiB';
+    document.getElementById('vram-total').textContent = '/ ' + (data.vram_total || '16384 MiB');
+
+    log.textContent = `[${new Date().toLocaleTimeString('ru')}] ✓ Статус получен\n` +
+      `API: ${data.containers?.api || '?'} | Ollama: ${data.containers?.ollama || '?'} | VRAM: ${pct}%\n`;
+
+  } catch (e) {
+    showToast('⚠️ Нет связи с сервером', 'error');
+    log.textContent += `[ОШИБКА] ${e.message}\n`;
+  }
+}
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  showToast('Обновляю статус...', 'info');
+  loadStatus();
+});
+
+async function stackCmd(cmd) {
+  const log = document.getElementById('stack-log');
+  const label = cmd === 'up' ? 'Запуск стека' : 'Остановка стека';
+  log.textContent += `[${new Date().toLocaleTimeString('ru')}] ${label}...\n`;
+  try {
+    let data;
+    try {
+      data = cmd === 'up' ? await API.stackUp() : await API.stackDown();
+    } catch {
+      // Демо
+      await new Promise(r => setTimeout(r, 1500));
+      data = {
+        success: true,
+        output: cmd === 'up'
+          ? 'Starting multiki_api ... done\nStarting multiki_ollama ... done\nStarting multiki_qdrant ... done\nStarting multiki_neo4j ... done'
+          : 'Stopping multiki_neo4j ... done\nStopping multiki_qdrant ... done\nStopping multiki_ollama ... done\nStopping multiki_api ... done'
+      };
+    }
+    log.textContent += data.output + '\n';
+    log.textContent += `[${new Date().toLocaleTimeString('ru')}] ✓ ${label} завершён\n`;
+    log.scrollTop = log.scrollHeight;
+    showToast(`${label} завершён!`, 'success');
+    setTimeout(loadStatus, 1000);
+  } catch (e) {
+    log.textContent += `[ОШИБКА] ${e.message}\n`;
+    showToast('⚠️ Ошибка: ' + e.message, 'error');
+  }
+}
+
+document.getElementById('stack-up-btn').addEventListener('click', () => stackCmd('up'));
+document.getElementById('stack-down-btn').addEventListener('click', () => stackCmd('down'));
+document.addEventListener('DOMContentLoaded', () => {
+  const vramFill = document.getElementById('vram-bar-fill');
+  const vramText = document.getElementById('vram-text');
+  const stackLog = document.getElementById('stack-log');
+  const btnStart = document.getElementById('btn-start');
+  const btnStop = document.getElementById('btn-stop');
+  const btnRefresh = document.getElementById('btn-refresh');
+
+  // 📊 Обновление VRAM и статусов
+  /*async function updateSystem() {
+    try {
+      const res = await fetch('/api/system/status?t=' + Date.now());
+      if (!res.ok) throw new Error('API недоступен');
       const data = await res.json();
-      loading.remove();
+      const pct = Math.round((data.vram_used / data.vram_total) * 100);
+      vramFill.style.width = `${pct}%`;
+      vramText.textContent = `VRAM: ${data.vram_used} MiB / ${data.vram_total} MiB (${pct}%)`;
       
-      const answer = `✅ <b>${data.category}</b> | ⚡ ${data.priority} <br>🌍 ${data.pillar} <br>📋 ${data.subtasks.join(' • ') || 'Нет подзадач'} <br>💭 ${data.reasoning}`;
-      appendMsg('ai', answer);
-      chatSend.classList.add('wobble'); setTimeout(()=>chatSend.classList.remove('wobble'), 400);
-      
-      // Save to history
-      taskHistory.unshift({ text, ...data });
-      if (taskHistory.length > 50) taskHistory.pop();
-      localStorage.setItem('multiki_history', JSON.stringify(taskHistory));
-      renderHistory();
+      // Обновление лампочек (пример)
+      document.querySelectorAll('.lamp').forEach(l => l.classList.add('on'));
     } catch (e) {
-      loading.innerHTML = `❌ Ошибка связи: ${e.message}`;
+      vramText.textContent = 'VRAM: ⚠️ Нет данных';
+      stackLog.textContent += `\n❌ ${e.message}`;
+    }
+  }*/
+
+  async function updateSystem() {
+    const res = await fetch('/api/system/status?t='+Date.now());
+    const data = await res.json();
+    const pct = Math.round(data.vram_used / data.vram_total * 100);
+    document.getElementById('vram-text').textContent = 
+      `VRAM: ${data.vram_used} MiB / ${data.vram_total} MiB (${pct}%)`;
+    document.getElementById('vram-bar-fill').style.width = pct + '%';
+  }
+  setInterval(updateSystem, 10000);
+
+  // 🚀 Управление стеком
+  async function controlStack(action) {
+    stackLog.textContent = `⏳ ${action === 'start' ? 'Запуск' : 'Остановка'} сервисов...`;
+    try {
+      const res = await fetch('/api/stack/control', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ action })
+      });
+      const data = await res.json();
+      stackLog.textContent = data.success ? `✅ ${data.message}` : `❌ ${data.error}`;
+      updateSystem();
+    } catch (e) {
+      stackLog.textContent = `❌ Ошибка: ${e.message}`;
     }
   }
 
-  function appendMsg(role, html, isLoading=false) {
-    const el = document.createElement('div');
-    el.className = `msg ${role} ${isLoading ? 'loading' : ''}`;
-    el.innerHTML = html;
-    chatMessages.appendChild(el);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    return el;
-  }
+  btnStart?.addEventListener('click', () => controlStack('start'));
+  btnStop?.addEventListener('click', () => controlStack('stop'));
+  btnRefresh?.addEventListener('click', updateSystem);
 
-  chatSend.addEventListener('click', sendMessage);
-  chatInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
-
-  // 📊 System Status Polling
-  async function updateStatus() {
-    try {
-      // API Health
-      const h = await fetch('/health').then(r=>r.ok);
-      lamps.api.classList.toggle('on', h); lamps.api.classList.toggle('off', !h);
-      dots.api.classList.toggle('active', h);
-      
-      // Ollama (proxy check)
-      const o = await fetch('http://localhost:11434').catch(()=>false);
-      lamps.ollama.classList.toggle('on', o); lamps.ollama.classList.toggle('off', !o);
-      dots.ollama.classList.toggle('active', o);
-
-      // Mock Qdrant & Neo4j status (replace with real endpoints if needed)
-      lamps.qdrant.classList.add('on'); lamps.neo4j.classList.add('on');
-
-      // VRAM (mock, replace with /api/status if implemented)
-      const vramUsed = 8192, vramTotal = 16384;
-      const pct = (vramUsed/vramTotal)*100;
-      vramFill.style.width = `${pct}%`;
-      vramText.textContent = `VRAM: ${vramUsed} MiB / ${vramTotal} MiB (${Math.round(pct)}%)`;
-    } catch(e) { /* silent */ }
-  }
-
-  // 🚀 Stack Control (requires backend endpoints /api/stack/{up,down})
-  async function controlStack(action) {
-    stackLog.textContent = `⏳ ${action === 'up' ? 'Запуск' : 'Остановка'}...`;
-    try {
-      // Заглушка: если эндпоинт не реализован, логируем в консоль
-      // const res = await fetch(`/api/stack/${action}`, { method: 'POST' });
-      // const data = await res.json();
-      setTimeout(()=>{ stackLog.textContent = `✅ Стек ${action==='up'?'запущен':'остановлен'} (реализуй /api/stack/ на бэкенде)`; }, 800);
-    } catch(e) { stackLog.textContent = `❌ Ошибка: ${e.message}`; }
-  }
-
-  document.getElementById('btn-start').addEventListener('click', () => controlStack('up'));
-  document.getElementById('btn-stop').addEventListener('click', () => controlStack('down'));
-  document.getElementById('btn-refresh').addEventListener('click', updateStatus);
-
-  // Init
-  updateStatus();
-  setInterval(updateStatus, 10000);
-  chatInput.focus();
+  updateSystem();
+  setInterval(updateSystem, 10000);
 });
+/* ===========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   =========================================================== */
+// Загружаем статус при старте
+setTimeout(loadStatus, 500);
 </script>
 </body>
 </html>

@@ -1,21 +1,19 @@
-# === СЕКРЕТЫ (никогда не коммитить!) ===
+# === Секреты и окружение ===
+.env
 .env.secret
 .env.local
+*.pem
+*.key
 
-# === ДАННЫЕ И ЛОГИ (хранятся только локально) ===
-data/
-backups/
+# === Логи и кэш ===
 *.log
-nginx/certs/
-neo4j/logs/
-api/logs/
-parser-agent/logs/
-planner-agent/logs/
-
-# === КЭШ И ВРЕМЕННЫЕ ФАЙЛЫ ===
 __pycache__/
 *.pyc
-*.pyo
-.DS_Store
-Thumbs.db
-.env
+.pytest_cache/
+.frontend/node_modules/
+
+# === Docker ===
+!.env.example
+.docker/
+*.swp
+*.swo
