@@ -39,3 +39,19 @@
 ## Текущее состояние
 Система разработки разворачивается поэтапно.
 Сначала создаётся структура, затем правила работы, затем канбан, затем verify-контур и CI.
+
+
+
+## Подключение локального pre-push hook
+
+После клонирования репозитория нужно подключить локальный pre-push hook вручную:
+
+    mkdir -p .git/hooks
+    cp dev_tools_system/git-hooks/pre-push .git/hooks/pre-push
+    chmod +x .git/hooks/pre-push
+
+Этот hook запускает:
+
+    ./dev_tools_system/scripts/verify.sh
+
+Если verify падает, push должен быть остановлен.

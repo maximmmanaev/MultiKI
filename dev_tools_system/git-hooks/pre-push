@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-push] running verify..."
+./dev_tools_system/scripts/verify.sh
+echo "[pre-push] verify passed"
