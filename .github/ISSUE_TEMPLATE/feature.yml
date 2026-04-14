@@ -1,0 +1,67 @@
+name: Feature
+description: Новая функция или улучшение
+title: "[Feature] "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Цель
+      description: Что нужно сделать
+      placeholder: Кратко опиши задачу
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Почему это нужно и где это используется
+      placeholder: Опиши бизнесовый или технический контекст
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Что входит в задачу
+      placeholder: Перечисли, что должно быть сделано
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Ограничения
+      description: Что нельзя ломать, какие условия обязательны
+      placeholder: Локальный стек, приватность, минимальная сложность и т.д.
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Связанные файлы и папки
+      description: Какие части проекта точно затрагиваются
+      placeholder: api/, frontend/, docs/, dev_tools_system/ ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      description: По каким критериям задача считается завершённой
+      placeholder: Что должно быть готово, чтобы задача считалась выполненной
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Проверки и тесты
+      description: Какие проверки обязательны
+      placeholder: pytest, smoke test, verify.sh и т.д.
+    validations:
+      required: true

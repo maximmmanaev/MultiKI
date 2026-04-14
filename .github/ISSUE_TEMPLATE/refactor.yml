@@ -1,0 +1,58 @@
+name: Refactor
+description: Рефакторинг без изменения целевого поведения
+title: "[Refactor] "
+labels: ["refactor"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: Что рефакторим
+      description: Какой модуль, файл или зона проекта меняется
+      placeholder: Опиши участок кода или системы
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Зачем это нужно
+      description: Почему текущая реализация плоха
+      placeholder: Сложность, дублирование, плохая читаемость, хрупкость
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Границы изменений
+      description: Что можно менять, а что трогать нельзя
+      placeholder: Какие файлы и контракты должны остаться стабильными
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Риски
+      description: Что можно сломать этим рефакторингом
+      placeholder: API, тесты, зависимости, совместимость
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      description: Когда рефакторинг считается завершённым
+      placeholder: Код упрощён, тесты зелёные, поведение не изменилось
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Проверки и тесты
+      description: Чем подтверждается, что поведение не сломано
+      placeholder: pytest, smoke test, verify.sh
+    validations:
+      required: true

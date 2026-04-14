@@ -1,0 +1,58 @@
+name: Research
+description: Исследование, анализ, сравнение вариантов
+title: "[Research] "
+labels: ["research"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Исследовательский вопрос
+      description: Что именно нужно выяснить
+      placeholder: Сформулируй главный вопрос
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст
+      description: Почему это исследование нужно проекту
+      placeholder: Опиши, где это повлияет на MultiKI
+    validations:
+      required: true
+
+  - type: textarea
+    id: options
+    attributes:
+      label: Варианты / направления
+      description: Какие варианты нужно сравнить
+      placeholder: Obsidian vs ..., GitHub Projects vs ..., Open WebUI vs ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Ограничения
+      description: Какие ограничения нельзя нарушать
+      placeholder: Локальный стек, приватность, минимум сложности, бюджет
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Ожидаемый результат
+      description: Что должно получиться на выходе
+      placeholder: Таблица сравнения, рекомендация, план внедрения
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: Критерий завершения
+      description: Когда исследование считается завершённым
+      placeholder: Что должно быть зафиксировано в docs или ADR
+    validations:
+      required: true

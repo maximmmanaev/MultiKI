@@ -1,0 +1,58 @@
+name: Prompt change
+description: Изменение системного промпта, eval cases или формата вывода
+title: "[Prompt] "
+labels: ["prompt"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: Что меняется
+      description: Какой промпт, агент или eval-case нужно изменить
+      placeholder: parser prompt, planner prompt, reflection prompt, eval cases
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Причина изменения
+      description: Почему текущий промпт или eval недостаточно хорош
+      placeholder: Нестабильный формат, галлюцинации, слабая декомпозиция, плохая классификация
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемый эффект
+      description: Что должно улучшиться после изменения
+      placeholder: Более стабильный JSON, лучшее разделение task/note/signal, меньше ошибок
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Связанные файлы
+      description: Какие prompt-файлы, eval-файлы или документы затрагиваются
+      placeholder: docs/prompts/, docs/evals/, parser configs
+    validations:
+      required: false
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      description: Когда изменение считается завершённым
+      placeholder: Промпт обновлён, eval cases обновлены, поведение проверено
+    validations:
+      required: true
+
+  - type: textarea
+    id: tests
+    attributes:
+      label: Проверки
+      description: Какие eval или тестовые сценарии должны быть прогнаны
+      placeholder: parser eval set, ручная проверка примеров, verify.sh
+    validations:
+      required: true
