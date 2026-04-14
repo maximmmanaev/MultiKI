@@ -1,37 +1,53 @@
-# MultiKI
+# MultiKI Controller v0.2.1
 
-Welcome to the MultiKI project!
+Веб-интерфейс для управления персональной системой искусственного интеллекта.
 
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Features](#features)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Contributing](#contributing)
-6. [License](#license)
+## Требования
 
-## Introduction
-MultiKI is a project designed to provide multiple functionalities to enhance user experience.
+- Docker + Docker Compose v2+
+- NVIDIA GPU + NVIDIA Container Toolkit (для Ollama)
+- 16+ GB RAM, 16+ GB VRAM (рекомендуется)
 
-## Features
-- User-friendly interface
-- Supports various data formats
-- High performance
+## Быстрый старт
 
-## Installation
-To install MultiKI, follow these steps:
-1. Clone the repository: `git clone https://github.com/maximmmanaev/MultiKI.git`
-2. Navigate to the project directory: `cd MultiKI`
-3. Install dependencies: `npm install`
+1. **Клонируй репозиторий:**
+   ```bash
+   git clone https://github.com/maximmmanaev/multiki.git
+   cd multiki
+   cp .env.example .env
+   # Отредактируй .env, заменив значения на свои пароли
+   make up
+   # или вручную:
+   docker compose --env-file .env up -d
+Запусти сервисы:
+🌐 Интерфейс: https://127.0.0.1
+📊 Langfuse: http://127.0.0.1:3000
+🔮 Qdrant UI: http://127.0.0.1:6333/dashboard
+🕸 Neo4j Browser: http://127.0.0.1:7474
+Основные команды
+Команда	Описание
+make up	Запустить все сервисы
+make down	Остановить и удалить контейнеры
+make update	Git pull + rebuild API + reload
+make logs	Показать логи всех сервисов
+Переменные окружения
+Смотри .env.example для полного списка параметров.
 
-## Usage
-To start the application, run:
-```bash
-npm start
-```
+⚠️ Важно: Никогда не коммить .env с реальными паролями!
 
-## Contributing
-We welcome contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-This project is licensed under the MIT License.
+Устранение неполадок
+Проблема	Решение
+502 Bad Gateway	Проверь docker compose ps, API должен быть Up (healthy)
+Langfuse Authentication failed	Синхронизируй POSTGRES_PASSWORD и DATABASE_URL в .env
+Ollama не отвечает	Убедись, что OLLAMA_BASE_URL указывает на хост с запущенным Ollama
+VRAM = 0	Проверь, что nvidia-smi работает на хосте, и контейнер имеет доступ к GPU
+Структура проекта
+Code
+multiki/
+├── api/                 # FastAPI бэкенд
+├── frontend/            # Статический веб-интерфейс
+├── nginx/               # Конфигурация прокси + SSL
+├── docker-compose.yml   # Оркестрация сервисов
+├── Makefile            # Удобные команды
+├── .env.example        # Шаблон переменных окружения
+└── README.md           # Этот файл
