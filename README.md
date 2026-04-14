@@ -1,13 +1,13 @@
-# 🚀 MultiKI Controller v0.2.1
+# MultiKI Controller v0.2.1
 
 Веб-интерфейс для управления персональной системой искусственного интеллекта.
 
-## 📋 Требования
+## Требования
 - Docker + Docker Compose v2+
 - NVIDIA GPU + NVIDIA Container Toolkit (для Ollama)
 - 16+ GB RAM, 16+ GB VRAM (рекомендуется)
 
-## 🚀 Быстрый старт
+## Быстрый старт
 
 1. **Клонируй репозиторий:**
    ```bash
@@ -18,18 +18,26 @@ cp .env.example .env
 make up
 # или вручную:
 docker compose --env-file .env up -d
+
+
 🌐 Интерфейс: https://127.0.0.1
 📊 Langfuse: http://127.0.0.1:3000
 🔮 Qdrant UI: http://127.0.0.1:6333/dashboard
 🕸 Neo4j Browser: http://127.0.0.1:7474
+
+
 make up      # Запустить все сервисы
 make down    # Остановить и удалить контейнеры
 make update  # Git pull + rebuild API + reload
 make logs    # Показать логи всех сервисов
-🔐 Переменные окружения
+
+
+# Переменные окружения
 Смотри .env.example для полного списка.
 Никогда не коммить .env с реальными паролями!
-🛠 Устранение неполадок
+
+
+# Устранение неполадок
 Проблема
 Решение
 502 Bad Gateway
@@ -40,7 +48,9 @@ Ollama не отвечает
 Убедись, что OLLAMA_BASE_URL указывает на хост с запущенным Ollama
 VRAM = 0
 Проверь, что nvidia-smi работает на хосте, и контейнер имеет доступ к GPU
-📦 Структура
+
+
+# Структура
 multiki/
 ├── api/                 # FastAPI бэкенд
 ├── frontend/            # Статический веб-интерфейс
