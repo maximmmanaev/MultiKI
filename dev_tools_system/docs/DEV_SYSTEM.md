@@ -69,3 +69,26 @@
 8. Обновить ветку, если она отстала от master.
 9. Выполнить Squash and merge.
 10. Удалить рабочую ветку.
+
+## Ключевые документы процесса
+
+### Runbooks
+- dev_tools_system/docs/runbooks/PRD_TO_TASKS.md
+- dev_tools_system/docs/runbooks/CODEX_WORKFLOW.md
+
+### Templates
+- dev_tools_system/docs/templates/TASK_PACKET.md
+- dev_tools_system/docs/templates/TEST_CONTRACT.md
+- dev_tools_system/docs/templates/SPRINT_REVIEW.md
+
+## Правило работы по требованиям
+
+Разработка должна идти по цепочке:
+
+PRD -> issue -> task packet -> Codex (test-first) -> verify -> PR -> CI -> merge
+
+Каждая техническая задача должна:
+- ссылаться на секцию PRD
+- иметь Definition of Done
+- иметь test contract
+- выполняться через отдельную ветку и PR
