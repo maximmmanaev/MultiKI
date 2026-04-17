@@ -80,6 +80,7 @@
 - dev_tools_system/docs/templates/TASK_PACKET.md
 - dev_tools_system/docs/templates/TEST_CONTRACT.md
 - dev_tools_system/docs/templates/SPRINT_REVIEW.md
+- dev_tools_system/docs/templates/ISSUE_CHECKLIST.md
 
 ## Правило работы по требованиям
 
@@ -92,3 +93,9 @@ PRD -> issue -> task packet -> Codex (test-first) -> verify -> PR -> CI -> merge
 - иметь Definition of Done
 - иметь test contract
 - выполняться через отдельную ветку и PR
+
+## Слой аналитики
+
+NotebookLM используется как внешний аналитический слой.
+Правила работы описаны в:
+- dev_tools_system/ops/notebooklm/WORKFLOW.md
