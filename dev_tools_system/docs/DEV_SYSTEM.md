@@ -69,3 +69,12 @@
 8. Обновить ветку, если она отстала от master.
 9. Выполнить Squash and merge.
 10. Удалить рабочую ветку.
+
+### Дополнительный шаблон
+- dev_tools_system/docs/templates/ISSUE_CHECKLIST.md
+
+## Слой аналитики
+
+NotebookLM используется как внешний аналитический слой.
+Правила работы описаны в:
+- dev_tools_system/ops/notebooklm/WORKFLOW.md
